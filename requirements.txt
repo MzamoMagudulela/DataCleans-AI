@@ -1,0 +1,17 @@
+# DataCleans AI - Core Dependencies
+streamlit>=1.35.0
+pandas>=2.2.0
+numpy>=1.26.0
+plotly>=5.20.0
+seaborn>=0.13.0
+matplotlib>=3.8.0
+sqlalchemy>=2.0.0
+python-dotenv>=1.0.0
+openpyxl>=3.1.0
+
+# Testing and Code Quality
+pytest>=8.0.0
+
+# Notebook Environment
+jupyter>=1.0.0
+ipykernel>=6.29.0

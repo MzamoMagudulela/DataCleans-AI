@@ -1,0 +1,16 @@
+customer_id,full_name,gender,age,join_date,contract_type,monthly_charges,total_charges,payment_method,churn
+CUST-1001, John Doe ,Male,34,2022-01-15,Month-to-month,$65.50,786.00,Credit Card,No
+CUST-1002,Jane Smith,female,28,2021/05/20,One year,80.00,960.00,Bank Transfer,No
+CUST-1003, Bob Johnson ,M,-5,2023-03-10,Month-to-month,45.20,135.60,Electronic Check,Yes
+CUST-1004,Alice Brown,Female,45,2020-11-01,Two year,95.10,2282.40,Credit Card,no
+CUST-1005,Charlie Davis,MALE,120,2022-08-19,Month-to-month,50.00,300.00,Electronic Check,Y
+CUST-1006,Eve Wilson,,31,2023-02-14,Month-to-month,70.30,,Mailed Check,Yes
+CUST-1007,Frank Miller,Male,29,15-06-2022,Two year,$110.00,2640.00,Bank Transfer,False
+CUST-1008, Grace Hopper ,Female,39,2021-09-30,One year,85.50,1026.00,Credit Card,No
+CUST-1009,Henry Ford,male,52,,Month-to-month,60.00,720.00,Electronic Check,TRUE
+CUST-1010,Ivy Taylor,Female,24,2023-07-01,Month-to-month,35.40,70.80,,No
+CUST-1001, John Doe ,Male,34,2022-01-15,Month-to-month,$65.50,786.00,Credit Card,No
+CUST-1011,Jack White,Male,999,2022-04-12,One year,68.00,816.00,Credit Card,Yes
+CUST-1012,Karen Clark,female,41,2021-12-05,Two year,105.20,2524.80,Bank Transfer,0
+CUST-1013,Leo Martin,Male,33,2023-01-01,Month-to-month,N/A,450.00,Electronic Check,Yes
+CUST-1014,Mia Robinson,F,27,2022-10-18,Month-to-month,55.00,Unknown,Mailed Check,No
