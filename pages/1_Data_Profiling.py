@@ -11,6 +11,14 @@ from src.visualizer import DataVisualizer
 
 st.set_page_config(page_title="Data Profiling — DataCleans AI", page_icon="🔍", layout="wide")
 
+with st.sidebar:
+    st.markdown("""
+    <div style="padding: 6px 0 12px 0; border-bottom: 1px solid #E2E8F0; margin-bottom: 14px;">
+        <div style="font-size: 1.15rem; font-weight: 800; color: #1E3A8A;">DataCleans AI</div>
+        <div style="font-size: 0.78rem; font-weight: 600; color: #64748B;">Platform by Mr. Mzamo Magudulela</div>
+    </div>
+    """, unsafe_allow_html=True)
+
 st.title("🔍 Data Profiling & Health Assessment")
 
 if "current_df" not in st.session_state or st.session_state["current_df"] is None:

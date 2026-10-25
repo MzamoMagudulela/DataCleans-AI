@@ -1,4 +1,4 @@
-# DataCleans AI 🧹
+# DataCleans AI
 
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.35+-FF4B4B.svg)](https://streamlit.io/)
@@ -6,6 +6,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 An intelligent, interactive data profiling, automated cleaning, exploratory analysis, and reporting dashboard built with Python and Streamlit.
+
+**Platform Creator:** **Mr. Mzamo Magudulela**  
+*Dedicated to Data Analysis Students and Aspiring Data Engineers.*
 
 ---
 
