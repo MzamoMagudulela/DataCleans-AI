@@ -12,7 +12,8 @@ from config.settings import DATABASE_URL
 Base = declarative_base()
 
 
-def utc_now():
+def utc_now() -> datetime:
+    """Helper to return timezone-aware UTC datetime."""
     return datetime.now(timezone.utc)
 
 
@@ -25,10 +26,13 @@ class DatasetAudit(Base):
     created_at = Column(DateTime, default=utc_now, nullable=False)
     initial_rows = Column(Integer, nullable=False)
     initial_columns = Column(Integer, nullable=False)
+    final_rows = Column(Integer, nullable=True)
+    final_columns = Column(Integer, nullable=True)
     health_score = Column(Float, nullable=True)
+    final_health_score = Column(Float, nullable=True)
     status = Column(String(50), default="Uploaded")
 
-    steps = relationship("CleaningStep", back_populates="audit", cascade="all, delete-orphan")
+    steps = relationship("CleaningStep", back_populates="audit", cascade="all, delete-orphan", order_by="CleaningStep.step_number")
 
 
 class CleaningStep(Base):
@@ -76,7 +80,10 @@ class DatabaseManager:
                 dataset_name=dataset_name,
                 initial_rows=initial_rows,
                 initial_columns=initial_columns,
+                final_rows=initial_rows,
+                final_columns=initial_columns,
                 health_score=health_score,
+                final_health_score=health_score,
                 status="Analyzed",
             )
             session.add(record)
@@ -104,7 +111,25 @@ class DatabaseManager:
             session.commit()
             return step.id
 
-    def get_recent_audits(self, limit: int = 10) -> List[Dict[str, Any]]:
+    def update_audit_completion(
+        self,
+        audit_id: int,
+        final_rows: int,
+        final_columns: int,
+        final_health_score: float,
+        status: str = "Cleaned",
+    ) -> None:
+        """Updates the session record with post-cleaning metrics."""
+        with self.SessionFactory() as session:
+            audit = session.query(DatasetAudit).filter_by(id=audit_id).first()
+            if audit:
+                audit.final_rows = final_rows
+                audit.final_columns = final_columns
+                audit.final_health_score = final_health_score
+                audit.status = status
+                session.commit()
+
+    def get_recent_audits(self, limit: int = 25) -> List[Dict[str, Any]]:
         """Retrieves recent audit sessions."""
         with self.SessionFactory() as session:
             audits = (
@@ -120,8 +145,32 @@ class DatabaseManager:
                     "created_at": a.created_at.strftime("%Y-%m-%d %H:%M:%S") if a.created_at else "",
                     "initial_rows": a.initial_rows,
                     "initial_columns": a.initial_columns,
-                    "health_score": a.health_score,
+                    "final_rows": a.final_rows,
+                    "final_columns": a.final_columns,
+                    "initial_health_score": a.health_score,
+                    "final_health_score": a.final_health_score,
                     "status": a.status,
+                    "total_steps": len(a.steps),
                 }
                 for a in audits
+            ]
+
+    def get_audit_steps(self, audit_id: int) -> List[Dict[str, Any]]:
+        """Retrieves all cleaning steps associated with a specific audit session."""
+        with self.SessionFactory() as session:
+            steps = (
+                session.query(CleaningStep)
+                .filter_by(audit_id=audit_id)
+                .order_by(CleaningStep.step_number.asc())
+                .all()
+            )
+            return [
+                {
+                    "step_number": s.step_number,
+                    "operation_name": s.operation_name,
+                    "parameters_json": s.parameters_json,
+                    "affected_rows": s.affected_rows,
+                    "created_at": s.created_at.strftime("%Y-%m-%d %H:%M:%S") if s.created_at else "",
+                }
+                for s in steps
             ]

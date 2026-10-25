@@ -1,25 +1,30 @@
 """
 Data Loader Module
-Handles secure, flexible ingestion of tabular datasets (CSV, Excel).
+Handles secure, flexible ingestion and export of tabular datasets (CSV, Excel).
 """
 
 from pathlib import Path
-from typing import Union, BinaryIO, Optional, Dict
+from typing import Union, BinaryIO, Optional, Dict, List
+import io
 import pandas as pd
 from config.settings import SAMPLES_DATA_DIR, SUPPORTED_EXTENSIONS
 
 
 class DataLoader:
-    """Utility class to load and export datasets safely."""
+    """Utility class to safely load, inspect, and export tabular datasets."""
 
-    @staticmethod
+    FALLBACK_ENCODINGS: List[str] = ["utf-8", "utf-8-sig", "latin-1", "cp1252", "iso-8859-1"]
+
+    @classmethod
     def load_dataset(
+        cls,
         source: Union[str, Path, BinaryIO],
         file_extension: Optional[str] = None,
         **kwargs
     ) -> pd.DataFrame:
         """
         Loads a tabular dataset from a file path or in-memory file buffer.
+        Automatically attempts encoding fallbacks for CSV files.
 
         Args:
             source: File path (str or Path) or file-like buffer (e.g., Streamlit UploadedFile).
@@ -53,11 +58,33 @@ class DataLoader:
             )
 
         if ext == ".csv":
-            return pd.read_csv(source, **kwargs)
+            return cls._load_csv_with_fallbacks(source, **kwargs)
         elif ext in [".xlsx", ".xls"]:
-            return pd.read_excel(source, **kwargs)
+            return pd.read_excel(source, engine="openpyxl" if ext == ".xlsx" else None, **kwargs)
         else:
             raise ValueError(f"No loader implemented for {ext}")
+
+    @classmethod
+    def _load_csv_with_fallbacks(cls, source: Union[str, Path, BinaryIO], **kwargs) -> pd.DataFrame:
+        """Attempts to read CSV using standard encoding, falling back gracefully."""
+        # If in-memory buffer, cache bytes to allow rewinding across encoding attempts
+        is_buffer = not isinstance(source, (str, Path))
+        raw_bytes = source.read() if is_buffer else None
+
+        last_error: Optional[Exception] = None
+        for enc in cls.FALLBACK_ENCODINGS:
+            try:
+                if is_buffer and raw_bytes is not None:
+                    buffer = io.BytesIO(raw_bytes)
+                    return pd.read_csv(buffer, encoding=enc, **kwargs)
+                else:
+                    return pd.read_csv(source, encoding=enc, **kwargs)
+            except (UnicodeDecodeError, pd.errors.ParserError) as err:
+                last_error = err
+                continue
+
+        # If all encodings failed, raise informative error
+        raise ValueError(f"Failed to decode CSV file with supported encodings. Details: {last_error}")
 
     @staticmethod
     def list_sample_datasets() -> Dict[str, Path]:
@@ -65,7 +92,7 @@ class DataLoader:
         Discovers all available sample datasets in the sample directory.
 
         Returns:
-            Dict[str, Path]: Map of dataset name to file path.
+            Dict[str, Path]: Map of dataset filename to Path.
         """
         samples: Dict[str, Path] = {}
         if SAMPLES_DATA_DIR.exists():
@@ -98,7 +125,7 @@ class DataLoader:
         if file_format.lower() == "csv":
             df.to_csv(path, index=False, **kwargs)
         elif file_format.lower() in ["excel", "xlsx"]:
-            df.to_excel(path, index=False, **kwargs)
+            df.to_excel(path, index=False, engine="openpyxl", **kwargs)
         else:
             raise ValueError(f"Unsupported export format: {file_format}")
 

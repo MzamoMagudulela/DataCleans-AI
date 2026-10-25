@@ -32,6 +32,16 @@ def test_validate_no_nulls():
     assert "null_col" in res_dirty["violating_columns"]
 
 
+def test_validate_unique():
+    df_unique = pd.DataFrame({"id": ["CUST-1", "CUST-2", "CUST-3"]})
+    assert DataValidator.validate_unique(df_unique, "id")["is_valid"] is True
+
+    df_dup = pd.DataFrame({"id": ["CUST-1", "CUST-1", "CUST-2"]})
+    res_dup = DataValidator.validate_unique(df_dup, "id")
+    assert res_dup["is_valid"] is False
+    assert res_dup["duplicate_count"] == 1
+
+
 def test_validate_numeric_range():
     df = pd.DataFrame({
         "age": [20, 25, 120, -5],
@@ -39,4 +49,22 @@ def test_validate_numeric_range():
 
     res = DataValidator.validate_numeric_range(df, "age", min_value=0, max_value=100)
     assert res["is_valid"] is False
-    assert res["violation_count"] == 2  # 120 and -5
+    assert res["violation_count"] == 2
+
+
+def test_validate_allowed_categories():
+    df = pd.DataFrame({
+        "gender": ["Male", "Female", "Unknown", "Alien"],
+    })
+    res = DataValidator.validate_allowed_categories(df, "gender", {"Male", "Female"})
+    assert res["is_valid"] is False
+    assert res["invalid_count"] == 2
+
+
+def test_validate_regex_pattern():
+    df = pd.DataFrame({
+        "customer_id": ["CUST-1001", "CUST-2002", "INVALID-ID"],
+    })
+    res = DataValidator.validate_regex_pattern(df, "customer_id", pattern=r"^CUST-\d{4}$")
+    assert res["is_valid"] is False
+    assert res["mismatch_count"] == 1
